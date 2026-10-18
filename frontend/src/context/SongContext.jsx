@@ -7,9 +7,11 @@ export const SongProvider = ({ children }) => {
     const [url, setUrl] = useState('')
     const [songIndex, setSongIndex] = useState(0)
     const [show, setShow] = useState(false)
+    const [isSongPlaying, setIsSongPlaying] = useState(false)
+
 
     return (
-        <SongContext.Provider value={{ folder, setFolder, url, setUrl, show, setShow, songIndex, setSongIndex }}>
+        <SongContext.Provider value={{ folder, setFolder, url, setUrl, show, setShow, songIndex, setSongIndex, isSongPlaying, setIsSongPlaying }}>
             {children}
         </SongContext.Provider>
     );

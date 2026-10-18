@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useRef, useState } from 'react'
 import { SongContext } from '../context/SongContext'
 
 const Playbar = () => {
-    const { url, songIndex, setSongIndex } = useContext(SongContext)
+    const { url, songIndex, setSongIndex, isSongPlaying, setIsSongPlaying } = useContext(SongContext)
 
     const [checkFirstReload, setCheckFirstReload] = useState(0)
     const [playSvg, setPlaySvg] = useState(false)
@@ -11,6 +11,7 @@ const Playbar = () => {
     const [currentTime, setCurrentTime] = useState('00:00')
     const [seekBarValue, SetSeekBarValue] = useState(0)
     const [checkbox, SetCheckbox] = useState(true)
+    const [isSeekBarClicked, setIsSeekBarClicked] = useState(false)
     const audio = useRef()
     const volRange = useRef()
 
@@ -20,9 +21,9 @@ const Playbar = () => {
         const secs = Math.floor(seconds % 60);
         return `${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
     };
-    
-    
-    
+
+
+
     useEffect(() => {
         setCheckFirstReload((no) => no + 1)
         setAudioSrcFunc()
@@ -35,6 +36,18 @@ const Playbar = () => {
 
     }, [url, songIndex])
 
+    useEffect(() => {
+        if (isSongPlaying) {
+            audio.current.play()
+            setPlaySvg(true)
+        } else {
+            audio.current.pause()
+            audio.current.src && setPlaySvg(false)
+        }
+    }, [isSongPlaying])
+
+
+
     const setAudioSrcFunc = () => {
         if (url) {
             audio.current.src = url[songIndex].mp3
@@ -43,11 +56,13 @@ const Playbar = () => {
 
     const handlePlay = () => {
         setPlaySvg(true)
+        setIsSongPlaying(true)
         audio.current.play()
     };
 
     const handlePause = () => {
         setPlaySvg(false)
+        setIsSongPlaying(false)
         audio.current.pause()
     };
 
@@ -56,8 +71,18 @@ const Playbar = () => {
         let currAudio = audio.current
         currAudio.currentTime = (value / 100) * currAudio.duration
         SetSeekBarValue(value)
-        if (playSvg) {
+        if (playSvg && !isSeekBarClicked) {
             currAudio.play()
+        }
+    };
+    const handleSeekBarCicked = (e) => {
+        setIsSeekBarClicked(true)
+        audio.current.pause()
+    };
+    const handleSeekBarReleased = (e) => {
+        setIsSeekBarClicked(false)
+        if (playSvg) {
+            audio.current.play()
         }
     };
 
@@ -139,7 +164,7 @@ const Playbar = () => {
                 </div>
             </div>
 
-            <input onChange={(e) => handleSeekBar(e)} value={seekBarValue} className='w-full h-[6px] cursor-pointer accent-red-600' type="range" />
+            <input onChange={(e) => handleSeekBar(e)} value={seekBarValue} onPointerDown={handleSeekBarCicked} onPointerUp={handleSeekBarReleased} className='w-full h-[6px] cursor-pointer accent-[#00ffff]' type="range" />
 
             <audio ref={audio} preload='auto' onTimeUpdate={handleCurrentTime} onLoadedMetadata={handleDuration} onEnded={handleAutoPlay}></audio>
         </div>
